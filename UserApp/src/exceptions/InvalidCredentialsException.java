@@ -1,5 +1,9 @@
 package exceptions;
 
-public class InvalidCredentialsException {
+@SuppressWarnings("serial")
+public class InvalidCredentialsException extends RuntimeException {
 
+	public InvalidCredentialsException(){
+		System.err.println("You entered invalid credentials!");
+	}
 }
