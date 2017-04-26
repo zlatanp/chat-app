@@ -26,5 +26,5 @@ public class User {
 	public void setHost(Host host) {
 		this.host = host;
 	}
-	
+
 }
