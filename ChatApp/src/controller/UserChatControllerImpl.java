@@ -15,6 +15,7 @@ import java.util.Set;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -275,8 +276,58 @@ public class UserChatControllerImpl implements UserChatController {
 		return "cao";
 
 	}
+	
+	//2. tacka
+	@Override
+	@POST
+	@Path("/registerUser")
+	public String registerUser(@FormParam("username") String username, @FormParam("password") String password, @FormParam("passwordRepeat") String passwordRepeat){
+		if(username.isEmpty() || password.isEmpty() || passwordRepeat.isEmpty()){
+			return "null";
+		}else if(!password.equals(passwordRepeat)){
+			return "null";
+		}else{
+			if(!MyAdress.contains("8080")){ //ako nisu na istom cvoru
+			try {
+				System.out.println(username + " " + password);
+				URL url = new URL("http://localhost:8080/UserApp/rest/userController/register/" + username + "/" + password);
+				
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setRequestProperty("Accept", "application/json");
+
+					BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+					String output;
+					System.out.println("Output from Server .... \n");
+					while ((output = br.readLine()) != null) {
+						System.out.println(output);
+					}
+
+					conn.disconnect();
+
+			  } catch (MalformedURLException e) {
+
+				e.printStackTrace();
+
+			  } catch (IOException e) {
+
+				e.printStackTrace();
+
+			 }
+			return "REST Done";
+			}else{
+				//jms queue jer su na istom portu...
+				
+				return "JMS Done";
+			}
+		}
+	}
 
 	@Override
+	@POST
+	@Path("/addUser")
+	@Consumes(MediaType.APPLICATION_JSON)
 	public void addUser(User user) {
 		// TODO Auto-generated method stub
 

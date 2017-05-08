@@ -4,19 +4,18 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.annotation.PostConstruct;
+import javax.jms.Message;
+import javax.jms.MessageListener;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -28,11 +27,10 @@ import org.json.simple.parser.ParseException;
 
 import exceptions.InvalidCredentialsException;
 import exceptions.UsernameExistsException;
-import model.Host;
 import model.User;
 
 @Path("/userController")
-public class UserControllerImpl implements UserController {
+public class UserControllerImpl implements UserController, MessageListener{
 	
 	@Context
 	ServletConfig config;
@@ -41,10 +39,11 @@ public class UserControllerImpl implements UserController {
 	private UriInfo uriInfo;
 
 	@Override
-	@POST
-	@Path("/register")
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public User register(@FormParam("username") String username, @FormParam("password") String password) throws UsernameExistsException {
+	@GET
+	@Path("/register/{username}/{password}")
+	public String register(@PathParam("username") String username, @PathParam("password") String password) throws UsernameExistsException {
+		System.out.println("usao sam da pisem");
+		
 		String s = config.getServletContext().getRealPath("");
 		ArrayList<User> allUsers = getAllUsersFromFile(s);
 		
@@ -61,7 +60,7 @@ public class UserControllerImpl implements UserController {
 		User u = new User();
 		u.setUsername(username);
 		u.setPassword(password);
-		return u;
+		return "added";
 	}
 
 	@Override
@@ -178,5 +177,11 @@ public class UserControllerImpl implements UserController {
 	@Path("/getMasterHost")
 	public String getMasterHost(){
 		return uriInfo.getBaseUri().toString();
+	}
+
+	@Override
+	public void onMessage(Message arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }
