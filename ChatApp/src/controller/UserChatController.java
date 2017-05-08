@@ -2,12 +2,19 @@ package controller;
 
 import java.util.List;
 
+
 import exceptions.AliasExistsException;
 import model.Host;
+import model.Message;
+import model.User;
 
 public interface UserChatController {
 
-	List<Host> register(String address, String alias) throws AliasExistsException;
-	void unregister(Host host);
+	public String initialise();
+	String register(String address, String alias) throws AliasExistsException;
+	String unregister();
+	void addUser(User user);
+	void removeUser(User user);
+	void publish(Message message);
 	
 }
