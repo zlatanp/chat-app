@@ -3,23 +3,24 @@ package controller;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
 import com.google.gson.Gson;
@@ -41,8 +42,11 @@ public class UserChatControllerImpl implements UserChatController {
 	private String MyAdress;
 	private Host masterHost;
 	private ArrayList<Host> MasterCvorovi = new ArrayList<Host>();
-	private ArrayList<Host> mojiCvorovi = new ArrayList<Host>();
+	//private ArrayList<Host> mojiCvorovi = new ArrayList<Host>();
+	private ArrayList<User> allUsers = new ArrayList<User>();
 	private boolean masterAdded = false;
+	private boolean slaveAdded = false;
+	private String alias = randomIdentifier();
 
 	public UserChatControllerImpl() {
 	}
@@ -59,9 +63,13 @@ public class UserChatControllerImpl implements UserChatController {
 		String[] pom = MyAdress.split(":");
 		String[] pom2 = pom[2].split("/");
 		String myHost = pom2[0];
+		
+		for(int j=0;j<MasterCvorovi.size();j++){
+			if(MasterCvorovi.get(j).getAlias().equals(alias))
+				slaveAdded = true;
+		}
 
-		if (!(MyAdress.equals("http://localhost:8080/ChatApp/rest/"))) {
-			String alias = randomIdentifier();
+		if (!(MyAdress.equals("http://localhost:8080/ChatApp/rest/")) && !slaveAdded) {
 			System.out.println("Call Master for registration");
 			String url = "http://localhost:8080/ChatApp/rest/userChatController/registerNewChat/" + myHost + "/" + alias;
 
@@ -78,7 +86,7 @@ public class UserChatControllerImpl implements UserChatController {
 				System.out.println("Output from Server .... \n");
 				while ((output = br.readLine()) != null) {
 					System.out.println(output);
-					mojiCvorovi= (ArrayList<Host>) fromJson(output,new TypeToken<ArrayList<Host>>() {}.getType());
+					MasterCvorovi= (ArrayList<Host>) fromJson(output,new TypeToken<ArrayList<Host>>() {}.getType());
 					
 				}
 
@@ -93,19 +101,97 @@ public class UserChatControllerImpl implements UserChatController {
 				e.printStackTrace();
 
 			}
-			System.out.println(mojiCvorovi.size());
+			//2. ako sam slave gadjam 8080/chatapp koji gadja userapp i dobijam sve
+			
+			try {
+
+				URL url2 = new URL("http://localhost:8080/ChatApp/rest/userChatController/getAllUsers");
+				HttpURLConnection conn = (HttpURLConnection) url2.openConnection();
+				conn.setRequestMethod("GET");
+				conn.setRequestProperty("Accept", "application/json");
+
+				BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+				String output;
+				System.out.println("Output from Server .... \n");
+				while ((output = br.readLine()) != null) {
+					System.out.println(output);
+					allUsers= (ArrayList<User>) fromJsonUsers(output,new TypeToken<ArrayList<User>>() {}.getType());
+					
+				}
+
+				conn.disconnect();
+
+			} catch (MalformedURLException e) {
+
+				e.printStackTrace();
+
+			} catch (IOException e) {
+
+				e.printStackTrace();
+
+			}
+			
+			System.out.println(MasterCvorovi.size());
 		} else {
-			System.out.println("I am master");
-			if(!masterAdded){
+			if(!masterAdded && !slaveAdded){
+				System.out.println("I am master");
 				MasterCvorovi.add(masterHost);
 				masterAdded = true;
+				
+				//1. ako sam master gadjam 8080/userapp/getall i stavljam u listu
+				allUsers = getAllUsers();
+				System.out.println(allUsers.size());
 			}
 		}
+		
+		
+		
+		
+		
+		
 
 		return MyAdress;
 	}
 
+	//Zatim šalje dodatni zahtev getAllUsers koji obrađuje User app master čvora i beleži listu korisnika kod sebe.
+	@Override
+	@GET
+	@Path("/getAllUsers")
+	public ArrayList<User> getAllUsers(){
+		ArrayList<User> allUsers = new ArrayList<User>();
+		
+		try {
 
+			URL url = new URL("http://localhost:8080/UserApp/rest/userController/allUsers");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Accept", "application/json");
+
+			BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+			String output;
+			System.out.println("Output from Server .... \n");
+			while ((output = br.readLine()) != null) {
+				System.out.println(output);
+				allUsers= (ArrayList<User>) fromJsonUsers(output,new TypeToken<ArrayList<User>>() {}.getType());
+				
+			}
+
+			conn.disconnect();
+
+		} catch (MalformedURLException e) {
+
+			e.printStackTrace();
+
+		} catch (IOException e) {
+
+			e.printStackTrace();
+
+		}
+		
+		return allUsers;
+	}
 
 	@Override
 	@GET
@@ -118,16 +204,74 @@ public class UserChatControllerImpl implements UserChatController {
 		newOne.setAlias(alias);
 		MasterCvorovi.add(newOne);
 		System.err.println(MyAdress + "dodao sam u listu hostova, a velicina je:  " + MasterCvorovi.size());
+		
+		//Treba da prodje kroz masterCvorove i da svima do poslednjeg posalje novu update-ovanu listu masterCvorova
+		for(int i=1;i<MasterCvorovi.size()-1;i++) //Nulti je master cvor, a poslednjem listu vraca return, znaci svima izmedju treba update liste
+			updateAllNodes(MasterCvorovi.get(i).getAdress());
+		
 		return  new Gson().toJson(MasterCvorovi);
+	}
+	
+	
+	private void updateAllNodes(String adress){
+		try {
+
+			URL url = new URL(adress + "userChatController/updateCvorove");
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setDoOutput(true);
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type", "application/json");
+
+			String input = new Gson().toJson(MasterCvorovi);
+
+			System.out.println("INPUT JE: " + input);
+			
+			OutputStream os = conn.getOutputStream();
+			os.write(input.getBytes());
+			os.flush();
+
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					(conn.getInputStream())));
+
+			String output;
+			System.out.println("Output from Server .... \n");
+			while ((output = br.readLine()) != null) {
+				System.out.println(output);
+			}
+
+			conn.disconnect();
+
+		  } catch (MalformedURLException e) {
+
+			e.printStackTrace();
+
+		  } catch (IOException e) {
+
+			e.printStackTrace();
+
+		 }
+	}
+	
+	@Override
+	@POST
+	@Path("/updateCvorove")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void updateCvorove(ArrayList<Host> u){
+		MasterCvorovi = u;
 	}
 
 	@Override
 	@GET
 	@Path("/poz")
 	public String unregister() {
-		System.out.println("SVI MASTER CVOROVI: ");
+		System.out.println("SVI MOJI CVOROVI: ");
 		for (int i = 0; i < MasterCvorovi.size(); i++)
 			System.out.println(MasterCvorovi.get(i).getAlias());
+		System.out.println(" ");
+		System.out.println("SVI MOJI USERI: ");
+		for (int i = 0; i < allUsers.size(); i++)
+			System.out.println(allUsers.get(i).getUsername());
+		
 		return "cao";
 
 	}
@@ -152,14 +296,14 @@ public class UserChatControllerImpl implements UserChatController {
 	
 	//Generate random Alias for non-master chat app
 	
-	final String lexicon = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345674890";
+	final static String lexicon = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345674890";
 
-	final java.util.Random rand = new java.util.Random();
+	final static java.util.Random rand = new java.util.Random();
 
 	// consider using a Map<String,Boolean> to say whether the identifier is being used or not 
-	final Set<String> identifiers = new HashSet<String>();
+	final static Set<String> identifiers = new HashSet<String>();
 
-	public String randomIdentifier() {
+	public static String randomIdentifier() {
 	    StringBuilder builder = new StringBuilder();
 	    while(builder.toString().length() == 0) {
 	        int length = rand.nextInt(5)+5;
@@ -176,5 +320,10 @@ public class UserChatControllerImpl implements UserChatController {
 	private ArrayList<Host> fromJson(String output, Type type) {
 		return new Gson().fromJson(output, type);
 	}
+	
+	private ArrayList<User> fromJsonUsers(String output, Type type) {
+		return new Gson().fromJson(output, type);
+	}
+
 
 }

@@ -1,6 +1,6 @@
 package controller;
 
-import java.util.List;
+import java.util.ArrayList;
 
 
 import exceptions.AliasExistsException;
@@ -16,5 +16,7 @@ public interface UserChatController {
 	void addUser(User user);
 	void removeUser(User user);
 	void publish(Message message);
+	public ArrayList<User> getAllUsers();
+	void updateCvorove(ArrayList<Host> u);
 	
 }
