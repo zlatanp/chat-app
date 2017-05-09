@@ -28,6 +28,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import exceptions.AliasExistsException;
+import jms.touser.MessageToUser;
+import jms.touser.MessageToUserImpl;
 import model.Host;
 import model.Message;
 import model.User;
@@ -318,6 +320,11 @@ public class UserChatControllerImpl implements UserChatController {
 			return "REST Done";
 			}else{
 				//jms queue jer su na istom portu...
+				
+				
+				MessageToUserImpl m = new MessageToUserImpl();
+				System.out.println("saljem");
+				m.registerMessage(username, password);
 				
 				return "JMS Done";
 			}

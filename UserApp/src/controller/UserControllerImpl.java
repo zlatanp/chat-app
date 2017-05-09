@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import javax.annotation.PostConstruct;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.servlet.ServletConfig;
@@ -27,10 +28,11 @@ import org.json.simple.parser.ParseException;
 
 import exceptions.InvalidCredentialsException;
 import exceptions.UsernameExistsException;
+import jms.UserJMS;
 import model.User;
 
 @Path("/userController")
-public class UserControllerImpl implements UserController, MessageListener{
+public class UserControllerImpl implements UserController{
 	
 	@Context
 	ServletConfig config;
@@ -179,9 +181,5 @@ public class UserControllerImpl implements UserController, MessageListener{
 		return uriInfo.getBaseUri().toString();
 	}
 
-	@Override
-	public void onMessage(Message arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 }
