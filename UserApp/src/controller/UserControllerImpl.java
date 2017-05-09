@@ -29,6 +29,7 @@ import org.json.simple.parser.ParseException;
 import exceptions.InvalidCredentialsException;
 import exceptions.UsernameExistsException;
 import jms.UserJMS;
+import jms.tochat.MessageToChatImpl;
 import model.User;
 
 @Path("/userController")
@@ -114,7 +115,8 @@ public class UserControllerImpl implements UserController{
 		String s = config.getServletContext().getRealPath("");
 		String databasePath = s.substring(0, 42);
 		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
-		
+		MessageToChatImpl m = new MessageToChatImpl();
+		m.addUser(new User());
 		return allUsers;
 	}
 
