@@ -36,6 +36,7 @@ public class MessageToUserImpl implements MessageToUser {
 	private Connection connection;
 	private QueueSender sender;
 	private QueueSession session;
+	
 	@Override
 	public void registerMessage(String username, String password) {
 		try {
@@ -46,7 +47,7 @@ public class MessageToUserImpl implements MessageToUser {
 		}
 		 try{
 			 
-			 TextMessage msg = session.createTextMessage(username + "=" + password);
+			 TextMessage msg = session.createTextMessage("register=" + username + "=" + password);
 	         sender.send(msg);
 	         
 	         destroy();
@@ -56,15 +57,40 @@ public class MessageToUserImpl implements MessageToUser {
 	}
 
 	@Override
-	public void loginMessage(String username, String password, String sessionId) {
-		// TODO Auto-generated method stub
+	public void loginMessage(String username, String password) {
+		try {
+			initialise();
+		} catch (NamingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		 try{
+			 
+			 TextMessage msg = session.createTextMessage("login=" + username + "=" + password);
+	         sender.send(msg);
+	         
+	         destroy();
+	        }
+	        catch(JMSException e) { }
 
 	}
 
 	@Override
-	public void logoutMessage(User user, String sessionId) {
-		// TODO Auto-generated method stub
-
+	public void logoutMessage(String username) {
+		try {
+			initialise();
+		} catch (NamingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		 try{
+			 
+			 TextMessage msg = session.createTextMessage("logout=" + username + "=null");
+	         sender.send(msg);
+	         
+	         destroy();
+	        }
+	        catch(JMSException e) { }
 	}
 
 	@Override
@@ -106,5 +132,6 @@ public class MessageToUserImpl implements MessageToUser {
 		} catch (JMSException e) {
 		}
 	}
+
 
 }

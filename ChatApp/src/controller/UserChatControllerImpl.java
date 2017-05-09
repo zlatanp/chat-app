@@ -28,7 +28,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import exceptions.AliasExistsException;
-import jms.touser.MessageToUser;
 import jms.touser.MessageToUserImpl;
 import model.Host;
 import model.Message;
@@ -284,7 +283,8 @@ public class UserChatControllerImpl implements UserChatController {
 	@POST
 	@Path("/registerUser")
 	public String registerUser(@FormParam("username") String username, @FormParam("password") String password, @FormParam("passwordRepeat") String passwordRepeat){
-		if(username.isEmpty() || password.isEmpty() || passwordRepeat.isEmpty()){
+		System.err.println(username + " " + password);
+		if(username.isEmpty() || password.isEmpty() || passwordRepeat.isEmpty() || username.equals(null) || password.equals(null) || password.equals("null") || username.equals("null")){
 			return "null";
 		}else if(!password.equals(passwordRepeat)){
 			return "null";
@@ -317,7 +317,7 @@ public class UserChatControllerImpl implements UserChatController {
 				e.printStackTrace();
 
 			 }
-			return "REST Done";
+			return "REST REGISTER Done";
 			}else{
 				//jms queue jer su na istom portu...
 				
@@ -326,10 +326,109 @@ public class UserChatControllerImpl implements UserChatController {
 				System.out.println("saljem");
 				m.registerMessage(username, password);
 				
-				return "JMS Done";
+				return "JMS REGISTER Done";
 			}
 		}
 	}
+	
+	@POST
+	@Path("/loginUser")
+	@Override
+	public String login(@FormParam("username") String username, @FormParam("password") String password){
+		if(username.isEmpty() || password.isEmpty() || username.equals(null) || password.equals(null)){
+			return "null";
+		}
+		
+		if(!MyAdress.contains("8080")){ //ako nisu na istom cvoru
+			try {
+				System.out.println(username + " " + password);
+				URL url = new URL("http://localhost:8080/UserApp/rest/userController/login/" + username + "/" + password);
+				
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setRequestProperty("Accept", "application/json");
+
+					BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+					String output;
+					System.out.println("Output from Server .... \n");
+					while ((output = br.readLine()) != null) {
+						System.out.println(output);
+					}
+
+					conn.disconnect();
+
+			  } catch (MalformedURLException e) {
+
+				e.printStackTrace();
+
+			  } catch (IOException e) {
+
+				e.printStackTrace();
+
+			 }
+			return "REST LOGIN Done";
+			}else{
+				//jms queue jer su na istom portu...
+				
+				
+				MessageToUserImpl m = new MessageToUserImpl();
+				System.out.println("saljem");
+				m.loginMessage(username, password);
+				
+				return "JMS LOGIN Done";
+			}
+		}
+	
+	@GET
+	@Path("/logoutUser/{username}")
+	@Override
+	public String logout(@PathParam("username") String username){
+		System.err.println(username);
+		if(username.isEmpty() || username.equals(null)){
+			return "null";
+		}
+		
+		if(!MyAdress.contains("8080")){ //ako nisu na istom cvoru
+			try {
+				System.out.println(username);
+				URL url = new URL("http://localhost:8080/UserApp/rest/userController/logout/" + username);
+				
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setRequestProperty("Accept", "application/json");
+
+					BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+					String output;
+					System.out.println("Output from Server .... \n");
+					while ((output = br.readLine()) != null) {
+						System.out.println(output);
+					}
+
+					conn.disconnect();
+
+			  } catch (MalformedURLException e) {
+
+				e.printStackTrace();
+
+			  } catch (IOException e) {
+
+				e.printStackTrace();
+
+			 }
+			return "REST LOGOUT Done";
+			}else{
+				//jms queue jer su na istom portu...
+				
+				
+				MessageToUserImpl m = new MessageToUserImpl();
+				System.out.println("saljem");
+				m.logoutMessage(username);
+				
+				return "JMS LOGOUT Done";
+			}
+		}
 
 	@Override
 	@POST

@@ -32,20 +32,17 @@ import controller.UserControllerImpl;
 import exceptions.UsernameExistsException;
 import model.User;
 
-@MessageDriven(
-		activationConfig = {
-		        @ActivationConfigProperty(propertyName  = "destinationType", 
-		                                  propertyValue = "javax.jms.Queue"),
-		        @ActivationConfigProperty(propertyName  = "destination",
-		                                  propertyValue = "java:/jms/queue/userQueue")
-		})
-public class UserJMS implements MessageListener{
+@MessageDriven(activationConfig = {
+		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+		@ActivationConfigProperty(propertyName = "destination", propertyValue = "java:/jms/queue/userQueue") })
+public class UserJMS implements MessageListener {
 
 	@Context
 	ServletConfig config;
-	
-	public UserJMS() { }
-	
+
+	public UserJMS() {
+	}
+
 	@Override
 	public void onMessage(Message msg) {
 		// TODO Auto-generated method stub
@@ -55,13 +52,19 @@ public class UserJMS implements MessageListener{
 			text = tmsg.getText();
 			System.out.println(text);
 			String[] data = text.split("=");
-			String username = data[0];
-			String password = data[1];
+			String method = data[0];
+			String username = data[1];
+			String password = data[2];
 			
-			try {
-				System.out.println(username + " " + password);
-				URL url = new URL("http://localhost:8080/UserApp/rest/userController/register/" + username + "/" + password);
-				
+			System.err.println(method);
+
+			if (method.equals("register")) {
+
+				try {
+					System.out.println(username + " " + password);
+					URL url = new URL(
+							"http://localhost:8080/UserApp/rest/userController/register/" + username + "/" + password);
+
 					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
 					conn.setRequestProperty("Accept", "application/json");
@@ -74,15 +77,71 @@ public class UserJMS implements MessageListener{
 						System.out.println(output);
 					}
 					conn.disconnect();
-			  } catch (MalformedURLException e) {
-				e.printStackTrace();
-			  } catch (IOException e) {
-				e.printStackTrace();
-			 }
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			
+			if(method.equals("login")){
+
+				try {
+					System.out.println(username + " " + password);
+					URL url = new URL(
+							"http://localhost:8080/UserApp/rest/userController/login/" + username + "/" + password);
+
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setRequestProperty("Accept", "application/json");
+
+					BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+					String output;
+					System.out.println("Output from Server .... \n");
+					while ((output = br.readLine()) != null) {
+						System.out.println(output);
+					}
+					conn.disconnect();
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+
+			if(method.equals("logout")){
+				System.err.println("LOGOUUTUJ");
+				try {
+					System.out.println(username);
+					URL url = new URL(
+							"http://localhost:8080/UserApp/rest/userController/logout/" + username);
+
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setRequestProperty("Accept", "application/json");
+
+					BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+					String output;
+					System.out.println("Output from Server .... \n");
+					while ((output = br.readLine()) != null) {
+						System.out.println(output);
+					}
+					conn.disconnect();
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
 		} catch (JMSException e) {
 			e.printStackTrace();
 		}
+
 	}
-	
 
 }

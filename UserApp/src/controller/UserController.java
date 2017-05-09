@@ -10,7 +10,7 @@ public interface UserController {
 	
 	String register(String username, String password) throws UsernameExistsException;
 	Boolean login(String username, String password) throws InvalidCredentialsException;
-	Boolean logout(User logout);
+	Boolean logout(String logout);
 	List<User> getAllUsers();
 	
 }

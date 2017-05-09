@@ -67,9 +67,8 @@ public class UserControllerImpl implements UserController{
 
 	@Override
 	@GET
-	@Path("/login")
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Boolean login(String username, String password) throws InvalidCredentialsException {
+	@Path("/login/{username}/{password}")
+	public Boolean login(@PathParam("username") String username, @PathParam("password") String password) throws InvalidCredentialsException {
 		String s = config.getServletContext().getRealPath("");
 		String databasePath = s.substring(0, 42);
 		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
@@ -90,16 +89,17 @@ public class UserControllerImpl implements UserController{
 
 	@Override
 	@GET
-	@Path("/logout")
-	public Boolean logout(User logout) {
+	@Path("/logout/{username}")
+	public Boolean logout(String username) {
 		String s = config.getServletContext().getRealPath("");
-		ArrayList<User> allUsers = getAllUsersFromFile(s);
+		String databasePath = s.substring(0, 42);
+		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
 		
-		if(logout.getUsername().isEmpty() || logout.getPassword().isEmpty())
+		if(username.isEmpty())
 			return false;
 		
 		for(int i=0;i<allUsers.size(); i++){
-			if((allUsers.get(i).getUsername()).equals(logout.getUsername()) && (allUsers.get(i).getPassword()).equals(logout.getPassword())){
+			if((allUsers.get(i).getUsername()).equals(username)){
 				return true;
 			}
 		}

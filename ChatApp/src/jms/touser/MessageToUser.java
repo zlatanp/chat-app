@@ -8,8 +8,8 @@ import model.User;
 public interface MessageToUser {
 	
 	public void registerMessage(String username, String password);
-    public void loginMessage(String username, String password, String sessionId);
-    public void logoutMessage(User user, String sessionId);
+    public void loginMessage(String username, String password);
+    public void logoutMessage(String username);
     public void getRegisteredUsers();
     public void getActiveUsers();
 }
