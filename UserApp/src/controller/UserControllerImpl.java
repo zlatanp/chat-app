@@ -44,10 +44,10 @@ public class UserControllerImpl implements UserController{
 	@GET
 	@Path("/register/{username}/{password}")
 	public String register(@PathParam("username") String username, @PathParam("password") String password) throws UsernameExistsException {
-		System.out.println("usao sam da pisem");
 		
 		String s = config.getServletContext().getRealPath("");
-		ArrayList<User> allUsers = getAllUsersFromFile(s);
+		String databasePath = s.substring(0, 42);
+		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
 		
 		if(username.isEmpty() || password.isEmpty())
 			return null;
@@ -57,7 +57,7 @@ public class UserControllerImpl implements UserController{
 				throw new UsernameExistsException();
 			}
 		}
-		addUserInFile(s, username, password);
+		addUserInFile(databasePath, username, password);
 		
 		User u = new User();
 		u.setUsername(username);
@@ -71,7 +71,8 @@ public class UserControllerImpl implements UserController{
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Boolean login(String username, String password) throws InvalidCredentialsException {
 		String s = config.getServletContext().getRealPath("");
-		ArrayList<User> allUsers = getAllUsersFromFile(s);
+		String databasePath = s.substring(0, 42);
+		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
 		
 		if(username.isEmpty() || password.isEmpty()){
 			throw new InvalidCredentialsException();
@@ -111,7 +112,8 @@ public class UserControllerImpl implements UserController{
 	@Path("/allUsers")
 	public List<User> getAllUsers() {
 		String s = config.getServletContext().getRealPath("");
-		ArrayList<User> allUsers = getAllUsersFromFile(s);
+		String databasePath = s.substring(0, 42);
+		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
 		
 		return allUsers;
 	}
