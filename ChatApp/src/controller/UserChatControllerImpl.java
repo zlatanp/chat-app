@@ -292,8 +292,8 @@ public class UserChatControllerImpl implements UserChatController {
 	//2. tacka
 	@Override
 	@POST
-	@Path("/registerUser")
-	public String registerUser(@FormParam("username") String username, @FormParam("password") String password, @FormParam("passwordRepeat") String passwordRepeat){
+	@Path("/registerUser/{username}/{password}/{passwordRepeat}")
+	public String registerUser(@PathParam("username") String username, @PathParam("password") String password, @PathParam("passwordRepeat") String passwordRepeat){
 		System.err.println(username + " " + password);
 		if(username.isEmpty() || password.isEmpty() || passwordRepeat.isEmpty() || username.equals(null) || password.equals(null) || password.equals("null") || username.equals("null")){
 			return "null";
@@ -396,12 +396,13 @@ public class UserChatControllerImpl implements UserChatController {
 				for (int i = 0; i < allUsers.size(); i++) {
 					if ((allUsers.get(i).getUsername()).equals(username) && (allUsers.get(i).getPassword()).equals(password)) {
 						ok = true;
+						MessageToUserImpl m = new MessageToUserImpl();
+						System.out.println("saljem");
+						m.loginMessage(username, password);
 					}
 				
-				MessageToUserImpl m = new MessageToUserImpl();
-				System.out.println("saljem");
-				m.loginMessage(username, password);
-					}
+				}
+				
 				if(ok){
 				return "JMS LOGIN Done";
 				}else{

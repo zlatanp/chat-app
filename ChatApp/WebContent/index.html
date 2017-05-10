@@ -12,23 +12,37 @@
 <div id="srednji">
 	<h1>Welcome to chatapp</h1>
 	<p></p>
+	<a href="#" id="logoutlink">LogOut</a>
+		
 	<div id="registerDiv">
-		<form action="rest/userChatController/registerUser" method="POST">
-			<input type="text" name="username"> <input type="text"
-				name="password"> <input type="text" name="passwordRepeat">
-			<input type="button" onclick="return login()">
+	<h3>Register</h3>
+		<form action="" method="POST">
+			<p>USERNAME:</p><input type="text" id="rusername">
+			<p>PASSWORD:</p><input type="password" id="rpassword">
+			<p>REPEAT PASSWORD:</p><input type="password" id="rpasswordRepeat"> <br>
+			<br>
+			<input type="button"  id="registersubmit" value="Register" onclick="return register()">
 		</form>
+		<p>You can login <a href="#" id="loginlinkfromregister">here</a></p>
 	</div>
+	
 	<div id="logovanje">
-	<h1 id="loginerror">Error!</h1>
-	<h3>Please Log In:</h3>
-	<form action="" method="POST">
-		<p>USERNAME:</p><input type="text" id="lusername"> <br>
-		<p>PASSWORD:</p><input type="text" id="lpassword"> <br>
-		<input type="button" onclick="return login()" value="Submit">
-	</form>
+		<h1 id="loginerror">Error!</h1>
+		<h3>Please Log In:</h3>
+		<form action="" method="POST">
+			<p>USERNAME:</p><input type="text" id="lusername">
+			<p>PASSWORD:</p><input type="password" id="lpassword"> <br>
+			<br>
+			<input type="button" id="loginsubmit" onclick="return login()" value="Login">
+		</form>
+		<p>Or you can register <a href="#" id="registerLink">here</a></p>
 	</div>
-	</div>
+	
+</div>
+	
+	
+	
+	
 	<div id="kasnije">
 	<h1>JavaScript web socket demo</h1>
 	<div id="container">
@@ -42,9 +56,50 @@
 	</div>
 	</div>
 	<script>
+	var usernamee;
+
+	function register(){
+		var username = $("#rusername").val();
+		var password = $("#rpassword").val();
+		var rpassword = $("#rpasswordRepeat").val();
+
+		if(password !== rpassword){
+			alert("Repeated password must be same as password!");
+			return false;
+		}
+
+
+		if(password == '' || rpassword == '' || password == ''){
+			alert("All fields must be filled!");
+			return false;
+		}
+		
+		$.ajax({ 
+	        type: 'POST',
+	        url: 'rest/userChatController/registerUser/'+username+'/'+password + '/' + rpassword,
+	        dataType: 'json',
+	        success: function(data){
+	        	console.log(data.responseText);
+	        	ready();
+	        },
+	        complete: function(data){
+	            console.log(data.responseText);
+	            ready();
+	        }
+		});
+		}
+
+	
 function login(){
 	var username = $("#lusername").val();
 	var password = $("#lpassword").val();
+
+	if(password == '' || password == ''){
+		alert("All fields must be filled!");
+		return false;
+	}
+
+	
 	$.ajax({ 
         type: 'POST',
         url: 'rest/userChatController/loginUser/'+username+'/'+password,
@@ -53,6 +108,9 @@ function login(){
         	console.log(data.responseText);
             var ret = data.responseText;
             if(ret.includes("Done")){
+                usernamee = username;
+
+           	 $("#logoutlink").show();
            	 	$("#loginerror").hide();
             	$("#logovanje").hide();
             	$("#kasnije").show();
@@ -65,6 +123,8 @@ function login(){
             console.log(data.responseText);
             var ret = data.responseText;
             if(ret.includes("Done")){
+            	usernamee = username;
+              	 $("#logoutlink").show();
            	 	$("#loginerror").hide();
             	$("#logovanje").hide();
             	$("#kasnije").show();
@@ -79,11 +139,20 @@ function login(){
 }
 	
 $(document).ready(function() {
-	 init();
-	 $("#loginerror").hide();
-	 $("#registerDiv").hide();
-	 $("#kasnije").hide();
+	 ready();
 	});
+	
+function ready(){
+	init();
+	$("#logoutlink").hide();
+	$("#loginerror").hide();
+	$("#registerDiv").hide();
+	$("#kasnije").hide();
+	$("#loginerror").hide();	
+ 	$("#logovanje").show();
+ 	$("#lusername").val('');
+	$("#lpassword").val('');
+}
 
 function init(){
 	$.ajax({ 
@@ -96,6 +165,47 @@ function init(){
         
 	});
 };
+
+
+$('#lpassword').keypress(function(event) {
+	if (event.keyCode == '13') {
+  		login();
+	}
+});	
+
+$('#rpasswordRepeat').keypress(function(event) {
+	if (event.keyCode == '13') {
+		register();
+	}
+});
+
+$('#registerLink').click(function(){
+	$("#logoutlink").hide();
+	$("#loginerror").hide();
+	$("#logovanje").hide();
+	$("#registerDiv").show();
+	$("#kasnije").hide();
+});
+
+$('#loginlinkfromregister').click(function(){
+	ready();
+});
+
+
+$('#logoutlink').click(function(){
+	$.ajax({ 
+        type: 'GET',
+        url: 'rest/userChatController/logoutUser/'+ usernamee,
+        dataType: 'json',
+        success: function(data){
+        	console.log(dataresponseText);
+        },
+        complete: function(data){
+        	ready();
+        }
+        
+	});
+});
 
 function whenLogged(){
 	var socket;
@@ -125,9 +235,13 @@ function whenLogged(){
     	}
 	});	
 
+
 	$('#send').click(function(){
 		send();
 	});
+
+
+	
 
 	if(!("WebSocket" in window)){
 		$('#chatLog, input, button, #examples').fadeOut("fast");
