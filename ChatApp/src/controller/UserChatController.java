@@ -16,10 +16,12 @@ public interface UserChatController {
 	String registerUser(String username, String password, String passwordRepeat);
 	String login(String username, String password);
 	String logout(String username);
-	void addUser(User user);
-	void removeUser(User user);
+	void addUser(String username, String password);
+	void removeUser(String username);
 	void publish(Message message);
 	public ArrayList<User> getAllUsers();
 	void updateCvorove(ArrayList<Host> u);
+	void addUserOnAnother(String username, String password);
+	void removeOnAnother(String username);
 	
 }

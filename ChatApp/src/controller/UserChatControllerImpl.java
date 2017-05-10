@@ -49,6 +49,8 @@ public class UserChatControllerImpl implements UserChatController {
 	private boolean masterAdded = false;
 	private boolean slaveAdded = false;
 	private String alias = randomIdentifier();
+	
+	public ArrayList<User> onlineUsers =  new ArrayList<User>();
 
 	public UserChatControllerImpl() {
 	}
@@ -194,7 +196,7 @@ public class UserChatControllerImpl implements UserChatController {
 		
 		return allUsers;
 	}
-
+	
 	@Override
 	@GET
 	@Path("/registerNewChat/{adress}/{alias}")
@@ -270,9 +272,16 @@ public class UserChatControllerImpl implements UserChatController {
 		for (int i = 0; i < MasterCvorovi.size(); i++)
 			System.out.println(MasterCvorovi.get(i).getAlias());
 		System.out.println(" ");
-		System.out.println("SVI MOJI USERI: ");
-		for (int i = 0; i < allUsers.size(); i++)
-			System.out.println(allUsers.get(i).getUsername());
+//		System.out.println("SVI MOJI USERI: ");
+//		for (int i = 0; i < allUsers.size(); i++)
+//			System.out.println(allUsers.get(i).getUsername());
+		
+		System.out.println("ULOGOVANI USERI NA MOJ KANAL CHAT:");
+		System.err.println(onlineUsers.size());
+		for(int i=0; i<onlineUsers.size(); i++){
+			System.out.println(onlineUsers.get(i).getUsername());
+			System.out.println(onlineUsers.get(i).getPassword());
+		}
 		
 		return "cao";
 
@@ -431,19 +440,119 @@ public class UserChatControllerImpl implements UserChatController {
 		}
 
 	@Override
-	@POST
-	@Path("/addUser")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public void addUser(User user) {
-		// TODO Auto-generated method stub
+	@GET
+	@Path("/addUser/{username}/{password}")
+	public void addUser(@PathParam("username") String username, @PathParam("password") String password) {
+		User u = new User();
+		u.setUsername(username);
+		u.setPassword(password);
+		
+		onlineUsers.add(u);
+		System.out.println(MasterCvorovi.size());
+		if(MasterCvorovi.size()>1){
+			for(int i=1;i<MasterCvorovi.size(); i++){
+				System.out.println(MasterCvorovi.get(i).getAdress() );
+				try {
+					System.out.println(username + " " + password);
+					URL url = new URL(
+							MasterCvorovi.get(i).getAdress() + "userChatController/addUserOnAnother/" + username + "/" + password);
 
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setRequestProperty("Accept", "application/json");
+
+					BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+					String output;
+					System.out.println("Output from Server .... \n");
+					while ((output = br.readLine()) != null) {
+						System.out.println(output);
+					}
+					conn.disconnect();
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		}
+		
+		
+	}
+	
+	@Override
+	@GET
+	@Path("/addUserOnAnother/{username}/{password}")
+	public void addUserOnAnother(@PathParam("username") String username, @PathParam("password") String password) {
+		System.out.println("ANODEEEER AADDDD");
+		User u = new User();
+		u.setUsername(username);
+		u.setPassword(password);
+		
+		onlineUsers.add(u);
+		
+		
 	}
 
 	@Override
-	public void removeUser(User user) {
-		// TODO Auto-generated method stub
+	@GET
+	@Path("/removeUser/{username}")
+	public void removeUser(@PathParam("username") String username) {
+		for(int i=0;i<onlineUsers.size();i++){
+			if(onlineUsers.get(i).getUsername().equals(username)){
+				onlineUsers.remove(i);
+				break;
+			}
+		}
+		System.out.println(MasterCvorovi.size());
+		if(MasterCvorovi.size()>1){
+			for(int i=1;i<MasterCvorovi.size(); i++){
+				System.out.println(MasterCvorovi.get(i).getAdress() );
+				try {
+					System.out.println(username);
+					URL url = new URL(
+							MasterCvorovi.get(i).getAdress() + "userChatController/removeOnAnother/" + username);
+
+					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					conn.setRequestMethod("GET");
+					conn.setRequestProperty("Accept", "application/json");
+
+					BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+
+					String output;
+					System.out.println("Output from Server .... \n");
+					while ((output = br.readLine()) != null) {
+						System.out.println(output);
+					}
+					conn.disconnect();
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		}
+		
 
 	}
+	
+	@Override
+	@GET
+	@Path("/removeOnAnother/{username}")
+	public void removeOnAnother(@PathParam("username") String username) {
+		System.out.println("ANODEEEER DELETEEE");
+		for(int i=0;i<onlineUsers.size();i++){
+			if(onlineUsers.get(i).getUsername().equals(username)){
+				onlineUsers.remove(i);
+				break;
+			}
+		}
+		
+		
+	}
+
 
 	@Override
 	public void publish(Message message) {
@@ -482,5 +591,14 @@ public class UserChatControllerImpl implements UserChatController {
 		return new Gson().fromJson(output, type);
 	}
 
+	public ArrayList<User> getOnlineUsers() {
+		return onlineUsers;
+	}
+
+	public void setOnlineUsers(ArrayList<User> onlineUsers) {
+		this.onlineUsers = onlineUsers;
+	}
+
+	
 
 }

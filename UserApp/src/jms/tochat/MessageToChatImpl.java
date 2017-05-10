@@ -43,8 +43,8 @@ public class MessageToChatImpl implements MessageToChat{
 			e1.printStackTrace();
 		}
 		 try{
-			 
-			 TextMessage msg = session.createTextMessage("aj dodaj usera");
+			 System.out.println("***********************************Saljem poruku");
+			 TextMessage msg = session.createTextMessage("add=" + user.getUsername() +"="+ user.getPassword());
 	         sender.send(msg);
 	         
 	         destroy();
@@ -63,8 +63,9 @@ public class MessageToChatImpl implements MessageToChat{
 			e1.printStackTrace();
 		}
 		 try{
-			 
-			 TextMessage msg = session.createTextMessage("aj obrisi usera");
+
+			 System.out.println("***********************************Saljem poruku deleteeeeeeeeeee");
+			 TextMessage msg = session.createTextMessage("delete=" + user.getUsername() +"="+ user.getPassword());
 	         sender.send(msg);
 	         
 	         destroy();

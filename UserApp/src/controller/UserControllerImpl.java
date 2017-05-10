@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.servlet.ServletConfig;
@@ -32,34 +34,42 @@ import jms.UserJMS;
 import jms.tochat.MessageToChatImpl;
 import model.User;
 
+@Startup
+@Singleton
 @Path("/userController")
-public class UserControllerImpl implements UserController{
-	
+public class UserControllerImpl implements UserController {
+
 	@Context
 	ServletConfig config;
-	
+
 	@Context
 	private UriInfo uriInfo;
+
+	private ArrayList<User> ulogovaniUseri = new ArrayList<User>();
+
+	public UserControllerImpl() {
+	}
 
 	@Override
 	@GET
 	@Path("/register/{username}/{password}")
-	public String register(@PathParam("username") String username, @PathParam("password") String password) throws UsernameExistsException {
-		
+	public String register(@PathParam("username") String username, @PathParam("password") String password)
+			throws UsernameExistsException {
+
 		String s = config.getServletContext().getRealPath("");
 		String databasePath = s.substring(0, 42);
 		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
-		
-		if(username.isEmpty() || password.isEmpty())
+
+		if (username.isEmpty() || password.isEmpty())
 			return null;
-		
-		for(int i=0;i<allUsers.size(); i++){
-			if((allUsers.get(i).getUsername()).equals(username) && (allUsers.get(i).getPassword()).equals(password)){
+
+		for (int i = 0; i < allUsers.size(); i++) {
+			if ((allUsers.get(i).getUsername()).equals(username) && (allUsers.get(i).getPassword()).equals(password)) {
 				throw new UsernameExistsException();
 			}
 		}
 		addUserInFile(databasePath, username, password);
-		
+
 		User u = new User();
 		u.setUsername(username);
 		u.setPassword(password);
@@ -69,45 +79,64 @@ public class UserControllerImpl implements UserController{
 	@Override
 	@GET
 	@Path("/login/{username}/{password}")
-	public Boolean login(@PathParam("username") String username, @PathParam("password") String password) throws InvalidCredentialsException {
+	public Boolean login(@PathParam("username") String username, @PathParam("password") String password)
+			throws InvalidCredentialsException {
+		MessageToChatImpl msg = new MessageToChatImpl();
 		String s = config.getServletContext().getRealPath("");
 		String databasePath = s.substring(0, 42);
 		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
-		
-		if(username.isEmpty() || password.isEmpty()){
+		User u;
+		if (username.isEmpty() || password.isEmpty()) {
 			throw new InvalidCredentialsException();
 		}
-		
-		
-		for(int i=0;i<allUsers.size(); i++){
-			if((allUsers.get(i).getUsername()).equals(username) && (allUsers.get(i).getPassword()).equals(password)){
+
+		for (int i = 0; i < allUsers.size(); i++) {
+			if ((allUsers.get(i).getUsername()).equals(username) && (allUsers.get(i).getPassword()).equals(password)) {
+				u = allUsers.get(i);
+				System.out.println("jel logujes" + u.getUsername());
+				ulogovaniUseri.add(u);
+				msg.addUser(u);
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 
 	@Override
 	@GET
 	@Path("/logout/{username}")
-	public Boolean logout(String username) {
+	public Boolean logout(@PathParam("username") String username) {
+		MessageToChatImpl msg = new MessageToChatImpl();
 		String s = config.getServletContext().getRealPath("");
 		String databasePath = s.substring(0, 42);
 		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
-		
-		if(username.isEmpty())
+		int index = 90;
+		User u = new User();
+		System.err.println("a sada ja" + username);
+		if (username.isEmpty())
 			return false;
-		
-		for(int i=0;i<allUsers.size(); i++){
-			if((allUsers.get(i).getUsername()).equals(username)){
-				return true;
+
+		for (int i = 0; i < allUsers.size(); i++) {
+			if ((allUsers.get(i).getUsername()).equals(username)) {
+				for(int j=0; j<ulogovaniUseri.size(); j++){
+					if(ulogovaniUseri.get(j).getUsername().equals(username)){
+						index = j;
+						u.setUsername(username);
+						u.setPassword(ulogovaniUseri.get(j).getPassword());
+						msg.removeUser(u);
+						break;
+					}
+				}
 			}
+			
 		}
-		
+		if(index != 90)
+		ulogovaniUseri.remove(index);
+
 		return false;
 	}
-	
+
 	@Override
 	@GET
 	@Path("/allUsers")
@@ -115,17 +144,28 @@ public class UserControllerImpl implements UserController{
 		String s = config.getServletContext().getRealPath("");
 		String databasePath = s.substring(0, 42);
 		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
-		MessageToChatImpl m = new MessageToChatImpl();
-		m.addUser(new User());
+		
 		return allUsers;
 	}
+	
+	@GET
+	@Path("/dajsve")
+	public String Svi(){
+		System.out.println("SERVERSKI USERI");
+		for(int i=0;i<ulogovaniUseri.size();i++){
+			System.out.println(ulogovaniUseri.get(i).getUsername());
+			System.out.println(ulogovaniUseri.get(i).getPassword());
+		}
+		
+		return "svi";
+	}
 
-	//JSON read/write
-	public static synchronized ArrayList<User> getAllUsersFromFile(String path){
+	// JSON read/write
+	public static synchronized ArrayList<User> getAllUsersFromFile(String path) {
 		ArrayList<User> allUsers = new ArrayList<User>();
 		String generatedPath = FilePaths.getPath(path).getPath();
 		String FileName = generatedPath + "//RegisteredUsers.txt";
-		
+
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
 		try {
 			jsons = ReadJSON(new File(FileName), "UTF-8");
@@ -134,11 +174,11 @@ public class UserControllerImpl implements UserController{
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		
+
 		for (int i = 0; i < jsons.size(); i++) {
 			String iusername = (String) jsons.get(i).get("username");
 			String ipassword = (String) jsons.get(i).get("password");
-			
+
 			User u = new User();
 			u.setUsername(iusername);
 			u.setPassword(ipassword);
@@ -146,9 +186,10 @@ public class UserControllerImpl implements UserController{
 		}
 		return allUsers;
 	}
-	
+
 	@SuppressWarnings("resource")
-	public static synchronized ArrayList<JSONObject> ReadJSON(File MyFile, String Encoding) throws FileNotFoundException, ParseException {
+	public static synchronized ArrayList<JSONObject> ReadJSON(File MyFile, String Encoding)
+			throws FileNotFoundException, ParseException {
 		Scanner scn = new Scanner(MyFile, Encoding);
 		ArrayList<JSONObject> json = new ArrayList<JSONObject>();
 		// Reading and Parsing Strings to Json
@@ -156,18 +197,18 @@ public class UserControllerImpl implements UserController{
 			JSONObject obj = (JSONObject) new JSONParser().parse(scn.nextLine());
 			json.add(obj);
 		}
-		
+
 		return json;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static synchronized void addUserInFile(String path, String username, String password) {
 		String generatedPath = FilePaths.getPath(path).getPath();
-		
+
 		JSONObject userObj = new JSONObject();
 		userObj.put("username", username);
 		userObj.put("password", password);
-		
+
 		BufferedWriter writer = null;
 		try {
 			writer = new BufferedWriter(new FileWriter(generatedPath + "//RegisteredUsers.txt", true));
@@ -181,9 +222,16 @@ public class UserControllerImpl implements UserController{
 
 	@GET
 	@Path("/getMasterHost")
-	public String getMasterHost(){
+	public String getMasterHost() {
 		return uriInfo.getBaseUri().toString();
 	}
 
-	
+	public ArrayList<User> getUlogovaniUseri() {
+		return ulogovaniUseri;
+	}
+
+	public void setUlogovaniUseri(ArrayList<User> ulogovaniUseri) {
+		this.ulogovaniUseri = ulogovaniUseri;
+	}
+
 }
