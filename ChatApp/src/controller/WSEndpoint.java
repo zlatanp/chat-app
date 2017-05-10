@@ -35,7 +35,7 @@ public class WSEndpoint {
             		 for(Session s : peers){
             			 RemoteEndpoint.Basic other = s.getBasicRemote();          
             		     try {
-							other.sendText("ahahaha");
+							other.sendText(message);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}

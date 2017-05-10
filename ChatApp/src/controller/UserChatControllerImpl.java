@@ -1,6 +1,8 @@
 package controller;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -10,10 +12,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Scanner;
 import java.util.Set;
 
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.servlet.ServletConfig;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -23,6 +27,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -40,7 +48,8 @@ public class UserChatControllerImpl implements UserChatController {
 
 	@Context
 	private UriInfo uriInfo;
-
+	@Context
+	ServletConfig config;
 	private String MyAdress;
 	private Host masterHost;
 	private ArrayList<Host> MasterCvorovi = new ArrayList<Host>();
@@ -334,9 +343,10 @@ public class UserChatControllerImpl implements UserChatController {
 	}
 	
 	@POST
-	@Path("/loginUser")
+	@Path("/loginUser/{username}/{password}")
 	@Override
-	public String login(@FormParam("username") String username, @FormParam("password") String password){
+	public String login(@PathParam("username") String username, @PathParam("password") String password){
+		boolean ok = false;
 		if(username.isEmpty() || password.isEmpty() || username.equals(null) || password.equals(null)){
 			return "null";
 		}
@@ -355,7 +365,11 @@ public class UserChatControllerImpl implements UserChatController {
 					String output;
 					System.out.println("Output from Server .... \n");
 					while ((output = br.readLine()) != null) {
+						System.err.println("sad ce outpuuuuuuuuut");
 						System.out.println(output);
+						System.err.println("sad ce outpuuuuuuuuut");
+						ok= (boolean) fromlogin(output,new TypeToken<Boolean>() {}.getType());
+						
 					}
 
 					conn.disconnect();
@@ -369,17 +383,31 @@ public class UserChatControllerImpl implements UserChatController {
 				e.printStackTrace();
 
 			 }
+			if(ok){
 			return "REST LOGIN Done";
 			}else{
+				return "no";
+			}
+			}else{
 				//jms queue jer su na istom portu...
-				
+				String s = config.getServletContext().getRealPath("");
+				String databasePath = s.substring(0, 42);
+				ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
+				for (int i = 0; i < allUsers.size(); i++) {
+					if ((allUsers.get(i).getUsername()).equals(username) && (allUsers.get(i).getPassword()).equals(password)) {
+						ok = true;
+					}
 				
 				MessageToUserImpl m = new MessageToUserImpl();
 				System.out.println("saljem");
 				m.loginMessage(username, password);
-				
+					}
+				if(ok){
 				return "JMS LOGIN Done";
-			}
+				}else{
+					return "no";
+				}
+				}
 		}
 	
 	@GET
@@ -583,6 +611,10 @@ public class UserChatControllerImpl implements UserChatController {
 	private ArrayList<User> fromJsonUsers(String output, Type type) {
 		return new Gson().fromJson(output, type);
 	}
+	
+	private boolean fromlogin(String output, Type type){
+		return new Gson().fromJson(output, type);
+	}
 
 	public ArrayList<User> getOnlineUsers() {
 		return onlineUsers;
@@ -592,6 +624,45 @@ public class UserChatControllerImpl implements UserChatController {
 		this.onlineUsers = onlineUsers;
 	}
 
-	
+	// JSON read/write
+		public static synchronized ArrayList<User> getAllUsersFromFile(String path) {
+			ArrayList<User> allUsers = new ArrayList<User>();
+			String generatedPath = FilePaths.getPath(path).getPath();
+			String FileName = generatedPath + "//RegisteredUsers.txt";
+
+			ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
+			try {
+				jsons = ReadJSON(new File(FileName), "UTF-8");
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+
+			for (int i = 0; i < jsons.size(); i++) {
+				String iusername = (String) jsons.get(i).get("username");
+				String ipassword = (String) jsons.get(i).get("password");
+
+				User u = new User();
+				u.setUsername(iusername);
+				u.setPassword(ipassword);
+				allUsers.add(u);
+			}
+			return allUsers;
+		}
+
+		@SuppressWarnings("resource")
+		public static synchronized ArrayList<JSONObject> ReadJSON(File MyFile, String Encoding)
+				throws FileNotFoundException, ParseException {
+			Scanner scn = new Scanner(MyFile, Encoding);
+			ArrayList<JSONObject> json = new ArrayList<JSONObject>();
+			// Reading and Parsing Strings to Json
+			while (scn.hasNext()) {
+				JSONObject obj = (JSONObject) new JSONParser().parse(scn.nextLine());
+				json.add(obj);
+			}
+
+			return json;
+		}
 
 }

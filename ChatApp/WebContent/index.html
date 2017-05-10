@@ -1,98 +1,88 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<script src="resources/js/jquery-1.11.0.js" ></script>
+<script src="resources/js/jquery-1.11.0.js"></script>
+<link rel="stylesheet" type="text/css" href="resources/css/mystyle.css">
 <title>Insert title here</title>
 </head>
-<body>
-<h1>cao ja sam chat</h1>
-<h1>pozz</h1>
-<form action="rest/userChatController/registerUser" method="POST">
-<input type="text" name="username">
-<input type="text" name="password">
-<input type="text" name="passwordRepeat">
-<input type="submit">
-</form>
-
-<form action="rest/userChatController/loginUser" method="POST">
-<input type="text" name="username">
-<input type="text" name="password">
-<input type="submit" >
-</form>
-<h1>JavaScript web socket demo</h1>
-<div id="container">
-	<label>Enter text:</label><input type="text" id="text"/>
-	<input type="button" id="send" value="send" />
-	
+<body class="body">
+<div id="srednji">
+	<h1>Welcome to chatapp</h1>
 	<p></p>
-	
-	<div id="chatLog" ></div>
+	<div id="registerDiv">
+		<form action="rest/userChatController/registerUser" method="POST">
+			<input type="text" name="username"> <input type="text"
+				name="password"> <input type="text" name="passwordRepeat">
+			<input type="button" onclick="return login()">
+		</form>
+	</div>
+	<div id="logovanje">
+	<h1 id="loginerror">Error!</h1>
+	<h3>Please Log In:</h3>
+	<form action="" method="POST">
+		<p>USERNAME:</p><input type="text" id="lusername"> <br>
+		<p>PASSWORD:</p><input type="text" id="lpassword"> <br>
+		<input type="button" onclick="return login()" value="Submit">
+	</form>
+	</div>
+	</div>
+	<div id="kasnije">
+	<h1>JavaScript web socket demo</h1>
+	<div id="container">
+		<label>Enter text:</label><input type="text" id="text" /> <input
+			type="button" id="send" value="send" />
 
-</div>
-<script>
+		<p></p>
+
+		<div id="chatLog"></div>
+
+	</div>
+	</div>
+	<script>
+function login(){
+	var username = $("#lusername").val();
+	var password = $("#lpassword").val();
+	$.ajax({ 
+        type: 'POST',
+        url: 'rest/userChatController/loginUser/'+username+'/'+password,
+        dataType: 'json',
+        success: function(data){
+        	console.log(data.responseText);
+            var ret = data.responseText;
+            if(ret.includes("Done")){
+           	 	$("#loginerror").hide();
+            	$("#logovanje").hide();
+            	$("#kasnije").show();
+            	whenLogged();
+             }else{
+            	 $("#loginerror").show();
+             }
+        },
+        complete: function(data){
+            console.log(data.responseText);
+            var ret = data.responseText;
+            if(ret.includes("Done")){
+           	 	$("#loginerror").hide();
+            	$("#logovanje").hide();
+            	$("#kasnije").show();
+            	whenLogged();
+             }else{
+            	 $("#loginerror").show();
+             }
+        }
+        
+	});
+	return false;
+}
+	
 $(document).ready(function() {
 	 init();
-	  var socket;
-      function send(){
-          var text = $('#text').val();
-
-          if(text==""){
-              message('<p>Please enter a message');
-              return ;
-          }
-          try{
-              socket.send(text);
-              message('<p>Sent: '+text);
-          } catch(exception){
-             message('<p>Error: ' + exception);
-          }
-      }
-
-      function message(msg){
-      	console.log(msg);
-        $('#chatLog').append(msg+'</p>');
-      }
-
-      $('#text').keypress(function(event) {
-          if (event.keyCode == '13') {
-            send();
-          }
-      });	
-
-      $('#send').click(function(){
-         send();
-      });
-
-      if(!("WebSocket" in window)){
-	  	$('#chatLog, input, button, #examples').fadeOut("fast");
-	  	$('<p>Oh no, you need a browser that supports WebSockets. How about <a href="http://www.google.com/chrome">Google/a>?</p>').appendTo('#container');
-	  } else {
-          var host = "ws://localhost:8080/ChatApp/websocket";
-          try{
-              socket = new WebSocket(host);
-              message('<p>connect: Socket Status: '+socket.readyState);
-
-              socket.onopen = function(){
-             	 message('<p>onopen: Socket Status: '+socket.readyState+' (open)');
-              }
-
-              socket.onmessage = function(msg){
-             	 message('<p>onmessage: Received: '+msg.data);
-              }
-
-              socket.onclose = function(){
-              	message('<p>onclose: Socket Status: '+socket.readyState+' (Closed)');
-              	socket = null;
-              }			
-
-          } catch(exception){
-             message('<p>Error'+exception);
-          }
-
-	  }//End else
-
+	 $("#loginerror").hide();
+	 $("#registerDiv").hide();
+	 $("#kasnije").hide();
 	});
 
 function init(){
@@ -106,6 +96,68 @@ function init(){
         
 	});
 };
+
+function whenLogged(){
+	var socket;
+	function send(){
+    	var text = $('#text').val();
+
+    	if(text==""){
+        	message('<p>Please enter a message');
+        	return ;
+    	}
+    	try{
+        	socket.send(text);
+        	message('<p>Sent: '+text);
+    	} catch(exception){
+       		message('<p>Error: ' + exception);
+    	}
+	}
+
+	function message(msg){
+		console.log(msg);
+  		$('#chatLog').append(msg+'</p>');
+	}
+
+	$('#text').keypress(function(event) {
+    	if (event.keyCode == '13') {
+      		send();
+    	}
+	});	
+
+	$('#send').click(function(){
+		send();
+	});
+
+	if(!("WebSocket" in window)){
+		$('#chatLog, input, button, #examples').fadeOut("fast");
+		$('<p>Oh no, you need a browser that supports WebSockets. How about <a href="http://www.google.com/chrome">Google/a>?</p>').appendTo('#container');
+	} else {
+    	var host = "ws://localhost:8080/ChatApp/websocket";
+    	try{
+        	socket = new WebSocket(host);
+        	message('<p>connect: Socket Status: '+socket.readyState);
+
+        	socket.onopen = function(){
+       	 		message('<p>onopen: Socket Status: '+socket.readyState+' (open)');
+        	}
+
+       	 	socket.onmessage = function(msg){
+       	 		message('<p>onmessage: Received: '+msg.data);
+        	}
+
+        	socket.onclose = function(){
+        		message('<p>onclose: Socket Status: '+socket.readyState+' (Closed)');
+        		socket = null;
+        	}			
+
+    	} catch(exception){
+       		message('<p>Error'+exception);
+    	}
+
+	}//End else
+};
+
 </script>
 </body>
 </html>
