@@ -148,13 +148,6 @@ public class UserChatControllerImpl implements UserChatController {
 				System.out.println(allUsers.size());
 			}
 		}
-		
-		
-		
-		
-		
-		
-
 		return MyAdress;
 	}
 
