@@ -44,6 +44,7 @@
 	
 	
 	<div id="kasnije">
+	<div id="ulogovanilikje"></div>
 		<h3>Chat history:</h3>
 		
 		<table border="1">
@@ -53,10 +54,10 @@
 		<br>
 		<br>
 		<div id="container">
+			<p>If you want to send message to specific user, enter username here:<input type="text" id="specificuser"/></p>
 			<label>Enter text:</label>
 			<input type="text" id="text" /> 
 			<input type="button" id="send" value="send" />
-
 			<p></p>
 
 		</div>
@@ -64,7 +65,8 @@
 	</div>
 	<script>
 	var usernamee;
-
+	var specific;
+	
 	function register(){
 		var username = $("#rusername").val();
 		var password = $("#rpassword").val();
@@ -100,13 +102,13 @@
 function login(){
 	var username = $("#lusername").val();
 	var password = $("#lpassword").val();
-
+	
 	if(password == '' || password == ''){
 		alert("All fields must be filled!");
 		return false;
 	}
 
-	$('#listaLjudi').html('Loading Users.. (wait 3s).');
+	$('#listaLjudi').html('Loading Users...');
 	
 	$.ajax({ 
         type: 'POST',
@@ -123,6 +125,7 @@ function login(){
             	$("#logovanje").hide();
             	$("#kasnije").show();
             	whenLogged();
+            	$("#ulogovanilikje").html(username);
              }else{
             	 $("#loginerror").show();
              }
@@ -137,6 +140,7 @@ function login(){
             	$("#logovanje").hide();
             	$("#kasnije").show();
             	whenLogged();
+            	$("#ulogovanilikje").html(username);
              }else{
             	 $("#loginerror").show();
              }
@@ -228,12 +232,18 @@ function whenLogged(){
 	var socket;
 	function send(){
     	var text = $('#text').val();
+
+    	if(specific.trim()){
+        	text = "$s:" + specific + ":" + text;
+
+        }
+    	
     	if(text==""){
         	message('<p>Please enter a message');
         	return ;
     	}
     	try{
-        	text = usernamee + " : " + text
+        	text = usernamee + ": " + text
         	socket.send(text);
         	//message('<p>Sent: '+text);
     	} catch(exception){
@@ -248,10 +258,11 @@ function whenLogged(){
 
 	$('#text').keypress(function(event) {
     	if (event.keyCode == '13') {
+    		specific = $("#specificuser").val();
       		send();
       		$('#text').val('');
-      		$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);
-    	}
+      		$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);	
+	    }
 	});	
 
 	$('#logoutlink').click(function(){
@@ -278,7 +289,11 @@ function whenLogged(){
 	});
 
 	$('#send').click(function(){
+		specific = $("#specificuser").val();
 		send();
+		$('#text').val('');
+  		$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);
+		
 	});
 
 	function f(sok){
@@ -306,8 +321,24 @@ function whenLogged(){
        	 	socket.onmessage = function(msg){
            	 	if(msg.data.includes("c00d3")){
            	 		setTimeout(getOn, 3000);
+           	 	}else if(msg.data.includes("$s:")){
+               	 	var poruka = msg.data;
+               	 	var niz = poruka.split(":");
+               	 	var odkoga = niz[0];
+               	 	var zakoga = niz[2];
+               	 	var message = niz[3];
+               	 	if(zakoga === usernamee){
+               	 		$('#chatLog').append('<p>*Private: '+odkoga + ": "+ message+'</p>');
+               	 		$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);
+               	 		alert(odkoga + " messaged you!");
+               	 	}
+               	 	if(odkoga === usernamee){
+               	 	$('#chatLog').append('<p>*Private: (to "'+ zakoga +'"): '+odkoga + ": "+ message+'</p>');
+           	 		$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);}
+               	 		
                 }else{
-       	 			message('<p>'+msg.data);
+                	$('#chatLog').append('<p>'+msg.data+'</p>');
+                	$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);
                 }
         	}
 
