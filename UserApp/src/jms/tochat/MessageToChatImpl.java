@@ -43,7 +43,7 @@ public class MessageToChatImpl implements MessageToChat{
 			e1.printStackTrace();
 		}
 		 try{
-			 System.out.println("***********************************Saljem poruku");
+			 //System.out.println("***********************************Saljem poruku");
 			 TextMessage msg = session.createTextMessage("add=" + user.getUsername() +"="+ user.getPassword());
 	         sender.send(msg);
 	         
@@ -64,7 +64,7 @@ public class MessageToChatImpl implements MessageToChat{
 		}
 		 try{
 
-			 System.out.println("***********************************Saljem poruku deleteeeeeeeeeee");
+			 //System.out.println("***********************************Saljem poruku deleteeeeeeeeeee");
 			 TextMessage msg = session.createTextMessage("delete=" + user.getUsername() +"="+ user.getPassword());
 	         sender.send(msg);
 	         
@@ -74,7 +74,6 @@ public class MessageToChatImpl implements MessageToChat{
 	}
 	
 	public void initialise() throws NamingException {
-		System.out.println("jebem ti mater");
 		try {
 			Context context = new InitialContext();
 			this.factory = (ConnectionFactory) context

@@ -9,6 +9,8 @@
 <title>Insert title here</title>
 </head>
 <body class="body">
+<audio id="audio" src="resources/css/pop.mp3" ></audio>
+
 <div id="srednji">
 	<h1>Welcome to chatapp</h1>
 	<p></p>
@@ -178,6 +180,11 @@ function init(){
 	});
 };
 
+function play(){
+    var audio = document.getElementById("audio");
+    audio.play();
+    }
+
 
 $('#lpassword').keypress(function(event) {
 	if (event.keyCode == '13') {
@@ -331,14 +338,17 @@ function whenLogged(){
                	 		$('#chatLog').append('<p>*Private: '+odkoga + ": "+ message+'</p>');
                	 		$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);
                	 		alert(odkoga + " messaged you!");
+               	 		play();
                	 	}
                	 	if(odkoga === usernamee){
                	 	$('#chatLog').append('<p>*Private: (to "'+ zakoga +'"): '+odkoga + ": "+ message+'</p>');
            	 		$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);}
+               	 	play();
                	 		
                 }else{
                 	$('#chatLog').append('<p>'+msg.data+'</p>');
                 	$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);
+                	play();
                 }
         	}
 

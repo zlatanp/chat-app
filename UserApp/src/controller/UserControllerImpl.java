@@ -93,7 +93,7 @@ public class UserControllerImpl implements UserController {
 		for (int i = 0; i < allUsers.size(); i++) {
 			if ((allUsers.get(i).getUsername()).equals(username) && (allUsers.get(i).getPassword()).equals(password)) {
 				u = allUsers.get(i);
-				System.out.println("jel logujes" + u.getUsername());
+				//System.out.println("jel logujes" + u.getUsername());
 				ulogovaniUseri.add(u);
 				msg.addUser(u);
 				return true;
@@ -113,7 +113,7 @@ public class UserControllerImpl implements UserController {
 		ArrayList<User> allUsers = getAllUsersFromFile(databasePath);
 		int index = 90;
 		User u = new User();
-		System.err.println("a sada ja" + username);
+		//System.err.println("a sada ja" + username);
 		if (username.isEmpty())
 			return false;
 

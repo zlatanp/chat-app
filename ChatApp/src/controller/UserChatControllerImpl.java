@@ -85,7 +85,7 @@ public class UserChatControllerImpl implements UserChatController {
 		}
 
 		if (!(MyAdress.equals("http://localhost:8080/ChatApp/rest/")) && !slaveAdded) {
-			System.out.println("Call Master for registration");
+			//System.out.println("Call Master for registration");
 			String url = "http://localhost:8080/ChatApp/rest/userChatController/registerNewChat/" + myHost + "/" + alias;
 
 			try {
@@ -147,7 +147,7 @@ public class UserChatControllerImpl implements UserChatController {
 
 			}
 			
-			System.out.println(MasterCvorovi.size());
+			//System.out.println(MasterCvorovi.size());
 		} else {
 			if(!masterAdded && !slaveAdded){
 				System.out.println("I am master");
@@ -211,7 +211,7 @@ public class UserChatControllerImpl implements UserChatController {
 		newOne.setAdress(realAdress);
 		newOne.setAlias(alias);
 		MasterCvorovi.add(newOne);
-		System.err.println(MyAdress + "dodao sam u listu hostova, a velicina je:  " + MasterCvorovi.size());
+		//System.err.println(MyAdress + "dodao sam u listu hostova, a velicina je:  " + MasterCvorovi.size());
 		
 		//Treba da prodje kroz masterCvorove i da svima do poslednjeg posalje novu update-ovanu listu masterCvorova
 		for(int i=1;i<MasterCvorovi.size()-1;i++) //Nulti je master cvor, a poslednjem listu vraca return, znaci svima izmedju treba update liste
@@ -232,7 +232,7 @@ public class UserChatControllerImpl implements UserChatController {
 
 			String input = new Gson().toJson(MasterCvorovi);
 
-			System.out.println("INPUT JE: " + input);
+			//System.out.println("INPUT JE: " + input);
 			
 			OutputStream os = conn.getOutputStream();
 			os.write(input.getBytes());
@@ -296,7 +296,7 @@ public class UserChatControllerImpl implements UserChatController {
 	@POST
 	@Path("/registerUser/{username}/{password}/{passwordRepeat}")
 	public String registerUser(@PathParam("username") String username, @PathParam("password") String password, @PathParam("passwordRepeat") String passwordRepeat){
-		System.err.println(username + " " + password);
+		//System.err.println(username + " " + password);
 		if(username.isEmpty() || password.isEmpty() || passwordRepeat.isEmpty() || username.equals(null) || password.equals(null) || password.equals("null") || username.equals("null")){
 			return "null";
 		}else if(!password.equals(passwordRepeat)){
@@ -304,7 +304,7 @@ public class UserChatControllerImpl implements UserChatController {
 		}else{
 			if(!MyAdress.contains("8080")){ //ako nisu na istom cvoru
 			try {
-				System.out.println(username + " " + password);
+				//System.out.println(username + " " + password);
 				URL url = new URL("http://localhost:8080/UserApp/rest/userController/register/" + username + "/" + password);
 				
 					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -336,7 +336,7 @@ public class UserChatControllerImpl implements UserChatController {
 				
 				
 				MessageToUserImpl m = new MessageToUserImpl();
-				System.out.println("saljem");
+				//System.out.println("saljem");
 				m.registerMessage(username, password);
 				
 				return "JMS REGISTER Done";
@@ -355,7 +355,7 @@ public class UserChatControllerImpl implements UserChatController {
 		
 		if(!MyAdress.contains("8080")){ //ako nisu na istom cvoru
 			try {
-				System.out.println(username + " " + password);
+				//System.out.println(username + " " + password);
 				URL url = new URL("http://localhost:8080/UserApp/rest/userController/login/" + username + "/" + password);
 				
 					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -367,9 +367,9 @@ public class UserChatControllerImpl implements UserChatController {
 					String output;
 					System.out.println("Output from Server .... \n");
 					while ((output = br.readLine()) != null) {
-						System.err.println("sad ce outpuuuuuuuuut");
+						//System.err.println("sad ce outpuuuuuuuuut");
 						System.out.println(output);
-						System.err.println("sad ce outpuuuuuuuuut");
+						//System.err.println("sad ce outpuuuuuuuuut");
 						ok= (boolean) fromlogin(output,new TypeToken<Boolean>() {}.getType());
 						
 					}
@@ -399,7 +399,7 @@ public class UserChatControllerImpl implements UserChatController {
 					if ((allUsers.get(i).getUsername()).equals(username) && (allUsers.get(i).getPassword()).equals(password)) {
 						ok = true;
 						MessageToUserImpl m = new MessageToUserImpl();
-						System.out.println("saljem");
+						//System.out.println("saljem");
 						m.loginMessage(username, password);
 					}
 				
@@ -417,14 +417,14 @@ public class UserChatControllerImpl implements UserChatController {
 	@Path("/logoutUser/{username}")
 	@Override
 	public String logout(@PathParam("username") String username){
-		System.err.println(username);
+		//System.err.println(username);
 		if(username.isEmpty() || username.equals(null)){
 			return "null";
 		}
 		
 		if(!MyAdress.contains("8080")){ //ako nisu na istom cvoru
 			try {
-				System.out.println(username);
+				//System.out.println(username);
 				URL url = new URL("http://localhost:8080/UserApp/rest/userController/logout/" + username);
 				
 					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -456,7 +456,7 @@ public class UserChatControllerImpl implements UserChatController {
 				
 				
 				MessageToUserImpl m = new MessageToUserImpl();
-				System.out.println("saljem");
+				//System.out.println("saljem");
 				m.logoutMessage(username);
 				
 				return "JMS LOGOUT Done";
@@ -472,12 +472,12 @@ public class UserChatControllerImpl implements UserChatController {
 		u.setPassword(password);
 		
 		onlineUsers.add(u);
-		System.out.println(MasterCvorovi.size());
+		//System.out.println(MasterCvorovi.size());
 		if(MasterCvorovi.size()>1){
 			for(int i=1;i<MasterCvorovi.size(); i++){
-				System.out.println(MasterCvorovi.get(i).getAdress() );
+				//System.out.println(MasterCvorovi.get(i).getAdress() );
 				try {
-					System.out.println(username + " " + password);
+					//System.out.println(username + " " + password);
 					URL url = new URL(
 							MasterCvorovi.get(i).getAdress() + "userChatController/addUserOnAnother/" + username + "/" + password);
 
@@ -509,7 +509,7 @@ public class UserChatControllerImpl implements UserChatController {
 	@GET
 	@Path("/addUserOnAnother/{username}/{password}")
 	public void addUserOnAnother(@PathParam("username") String username, @PathParam("password") String password) {
-		System.out.println("ANODEEEER AADDDD");
+		//System.out.println("ANODEEEER AADDDD");
 		User u = new User();
 		u.setUsername(username);
 		u.setPassword(password);
@@ -529,12 +529,12 @@ public class UserChatControllerImpl implements UserChatController {
 				break;
 			}
 		}
-		System.out.println(MasterCvorovi.size());
+		//System.out.println(MasterCvorovi.size());
 		if(MasterCvorovi.size()>1){
 			for(int i=1;i<MasterCvorovi.size(); i++){
-				System.out.println(MasterCvorovi.get(i).getAdress() );
+				//System.out.println(MasterCvorovi.get(i).getAdress() );
 				try {
-					System.out.println(username);
+					//System.out.println(username);
 					URL url = new URL(
 							MasterCvorovi.get(i).getAdress() + "userChatController/removeOnAnother/" + username);
 
@@ -566,7 +566,7 @@ public class UserChatControllerImpl implements UserChatController {
 	@GET
 	@Path("/removeOnAnother/{username}")
 	public void removeOnAnother(@PathParam("username") String username) {
-		System.out.println("ANODEEEER DELETEEE");
+		//System.out.println("ANODEEEER DELETEEE");
 		for(int i=0;i<onlineUsers.size();i++){
 			if(onlineUsers.get(i).getUsername().equals(username)){
 				onlineUsers.remove(i);

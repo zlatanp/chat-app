@@ -36,7 +36,7 @@ public class MessageToUserImpl implements MessageToUser {
 	private Connection connection;
 	private QueueSender sender;
 	private QueueSession session;
-	
+
 	@Override
 	public void registerMessage(String username, String password) {
 		try {
@@ -45,14 +45,14 @@ public class MessageToUserImpl implements MessageToUser {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		 try{
-			 
-			 TextMessage msg = session.createTextMessage("register=" + username + "=" + password);
-	         sender.send(msg);
-	         
-	         destroy();
-	        }
-	        catch(JMSException e) { }
+		try {
+
+			TextMessage msg = session.createTextMessage("register=" + username + "=" + password);
+			sender.send(msg);
+
+			destroy();
+		} catch (JMSException e) {
+		}
 
 	}
 
@@ -64,14 +64,14 @@ public class MessageToUserImpl implements MessageToUser {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		 try{
-			 
-			 TextMessage msg = session.createTextMessage("login=" + username + "=" + password);
-	         sender.send(msg);
-	         
-	         destroy();
-	        }
-	        catch(JMSException e) { }
+		try {
+
+			TextMessage msg = session.createTextMessage("login=" + username + "=" + password);
+			sender.send(msg);
+
+			destroy();
+		} catch (JMSException e) {
+		}
 
 	}
 
@@ -83,14 +83,14 @@ public class MessageToUserImpl implements MessageToUser {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		 try{
-			 
-			 TextMessage msg = session.createTextMessage("logout=" + username + "=null");
-	         sender.send(msg);
-	         
-	         destroy();
-	        }
-	        catch(JMSException e) { }
+		try {
+
+			TextMessage msg = session.createTextMessage("logout=" + username + "=null");
+			sender.send(msg);
+
+			destroy();
+		} catch (JMSException e) {
+		}
 	}
 
 	@Override
@@ -106,18 +106,15 @@ public class MessageToUserImpl implements MessageToUser {
 	}
 
 	public void initialise() throws NamingException {
-		System.out.println("jebem ti mater");
 		try {
 			Context context = new InitialContext();
-			this.factory = (ConnectionFactory) context
-			.lookup("java:/ConnectionFactory");
+			this.factory = (ConnectionFactory) context.lookup("java:/ConnectionFactory");
 			this.connection = factory.createConnection();
 			connection.start();
 			this.session = (QueueSession) connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			
-			userQueue = (Queue) context
-					.lookup("java:/jms/queue/userQueue");
-			
+
+			userQueue = (Queue) context.lookup("java:/jms/queue/userQueue");
+
 			this.sender = session.createSender(userQueue);
 		} catch (JMSException e) {
 			return;
@@ -132,6 +129,5 @@ public class MessageToUserImpl implements MessageToUser {
 		} catch (JMSException e) {
 		}
 	}
-
 
 }
