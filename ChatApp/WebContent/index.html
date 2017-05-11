@@ -44,16 +44,23 @@
 	
 	
 	<div id="kasnije">
-	<h1>JavaScript web socket demo</h1>
-	<div id="container">
-		<label>Enter text:</label><input type="text" id="text" /> <input
-			type="button" id="send" value="send" />
+		<h3>Chat history:</h3>
+		
+		<table border="1">
+			<tr><td><div id="chatLog" style="overflow-y: scroll; height:350px; width:500px; background-color: white;"></div></td><td><div id="listaLjudi" style="overflow-y: scroll; height:350px; width:200px; background-color: white;"><p>Loading Users.. (wait 3s).</div></td></tr>
+		
+		</table>
+		<br>
+		<br>
+		<div id="container">
+			<label>Enter text:</label>
+			<input type="text" id="text" /> 
+			<input type="button" id="send" value="send" />
 
-		<p></p>
+			<p></p>
 
-		<div id="chatLog"></div>
-
-	</div>
+		</div>
+	
 	</div>
 	<script>
 	var usernamee;
@@ -99,6 +106,7 @@ function login(){
 		return false;
 	}
 
+	$('#listaLjudi').html('Loading Users.. (wait 3s).');
 	
 	$.ajax({ 
         type: 'POST',
@@ -192,33 +200,42 @@ $('#loginlinkfromregister').click(function(){
 });
 
 
-$('#logoutlink').click(function(){
+
+
+function addCoek(user){
+	$('#listaLjudi').append('<p>' + user + '</p>');
+}
+
+function getOn(){
+	$('#listaLjudi').html('');
 	$.ajax({ 
         type: 'GET',
-        url: 'rest/userChatController/logoutUser/'+ usernamee,
+        url: 'rest/userChatController/on',
         dataType: 'json',
         success: function(data){
-        	console.log(dataresponseText);
-        },
-        complete: function(data){
-        	ready();
+        	console.log(data);
+        	if(data.length>0){
+				for(var i=0; i<data.length; i++){
+					addCoek(data[i].username);
+				}
+            }
         }
-        
+       
 	});
-});
+}
 
 function whenLogged(){
 	var socket;
 	function send(){
     	var text = $('#text').val();
-
     	if(text==""){
         	message('<p>Please enter a message');
         	return ;
     	}
     	try{
+        	text = usernamee + " : " + text
         	socket.send(text);
-        	message('<p>Sent: '+text);
+        	//message('<p>Sent: '+text);
     	} catch(exception){
        		message('<p>Error: ' + exception);
     	}
@@ -232,16 +249,41 @@ function whenLogged(){
 	$('#text').keypress(function(event) {
     	if (event.keyCode == '13') {
       		send();
+      		$('#text').val('');
+      		$('#chatLog').animate({scrollTop: $('#chatLog').get(0).scrollHeight}, 100);
     	}
 	});	
 
+	$('#logoutlink').click(function(){
+		$.ajax({ 
+	        type: 'GET',
+	        url: 'rest/userChatController/logoutUser/'+ usernamee,
+	        dataType: 'json',
+	        success: function(data){
+	        	console.log(dataresponseText);
+	        },
+	        complete: function(data){
+	        	ready();
+	        	
+	        }
+	        
+		});
+		try{
+			socket.send("c00d3");
+			location.reload();
+        	//message('<p>Sent: '+text);
+    	} catch(exception){
+       		message('<p>Error: ' + exception);
+    	}
+	});
 
 	$('#send').click(function(){
 		send();
 	});
 
-
-	
+	function f(sok){
+		sok = null;
+		}
 
 	if(!("WebSocket" in window)){
 		$('#chatLog, input, button, #examples').fadeOut("fast");
@@ -250,18 +292,30 @@ function whenLogged(){
     	var host = "ws://localhost:8080/ChatApp/websocket";
     	try{
         	socket = new WebSocket(host);
-        	message('<p>connect: Socket Status: '+socket.readyState);
+        	//message('<p>connect: Socket Status: '+socket.readyState);
 
         	socket.onopen = function(){
-       	 		message('<p>onopen: Socket Status: '+socket.readyState+' (open)');
+       	 		//message('<p>onopen: Socket Status: '+socket.readyState+' (open)');
+       	 		//addCoek(usernamee);
+       	 		//Daj sve online usere i stavi sa strane u listu
+        		//getOn();
+        		
+				socket.send("c00d3");
         	}
 
        	 	socket.onmessage = function(msg){
-       	 		message('<p>onmessage: Received: '+msg.data);
+           	 	if(msg.data.includes("c00d3")){
+           	 		setTimeout(getOn, 3000);
+                }else{
+       	 			message('<p>'+msg.data);
+                }
         	}
 
+       	 	
         	socket.onclose = function(){
-        		message('<p>onclose: Socket Status: '+socket.readyState+' (Closed)');
+        		//message('<p>onclose: Socket Status: '+socket.readyState+' (Closed)');
+        		//socket.send("c00d3");
+        		//setTimeout(f(socket), 1000);
         		socket = null;
         	}			
 

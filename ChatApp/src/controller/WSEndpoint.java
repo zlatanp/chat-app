@@ -16,47 +16,46 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-
 @ServerEndpoint("/websocket")
 @Singleton
 public class WSEndpoint {
-	
+
 	private static final Logger LOG = Logger.getLogger(WSEndpoint.class.getName());
-    private static Set<Session> peers = Collections.synchronizedSet(new HashSet<Session>());
-	
-	public WSEndpoint(){ }
-	
+	private static Set<Session> peers = Collections.synchronizedSet(new HashSet<Session>());
+
+	public WSEndpoint() {
+	}
+
 	@OnMessage
-    public String onMessage(String message) {
-        if (message != null) {
-        	 if (message.equals("hello server")) {
-                 return "{\"hello\": \"Hello, if you need the ATP list just press the button ...\"}";
-             } else {
-            		 for(Session s : peers){
-            			 RemoteEndpoint.Basic other = s.getBasicRemote();          
-            		     try {
-							other.sendText(message);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-            		 }
-             }
-            		     
-        }
-             
-        return "";
-    }
-    @OnOpen
-    public void onOpen(Session peer) {
-        System.out.println("OPEN");
-        LOG.info("Connection opened ...");
-        peers.add(peer);
-    }
-    
-    @OnClose
-    public void onClose(Session peer) {
-       System.out.println("CLOSE");
-       LOG.info("Connection closed ...");
-       peers.remove(peer);
-    }
+	public String onMessage(Session session, String message) {
+		if (message != null) {
+
+			//Slanje poruka svima osim sebi
+			for (Session s : peers) {
+				RemoteEndpoint.Basic other = s.getBasicRemote();
+				try {
+					other.sendText(message);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		
+		}
+
+		return "";
+	}
+
+	@OnOpen
+	public void onOpen(Session peer) {
+		System.out.println("OPEN");
+		LOG.info("Connection opened ...");
+		peers.add(peer);
+	}
+
+	@OnClose
+	public void onClose(Session peer) {
+		System.out.println("CLOSE");
+		LOG.info("Connection closed ...");
+		peers.remove(peer);
+	}
 }

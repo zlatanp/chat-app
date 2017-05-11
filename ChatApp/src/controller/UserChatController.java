@@ -23,5 +23,6 @@ public interface UserChatController {
 	void updateCvorove(ArrayList<Host> u);
 	void addUserOnAnother(String username, String password);
 	void removeOnAnother(String username);
+	ArrayList<User> getOnlineUsers();
 	
 }

@@ -24,6 +24,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
@@ -58,6 +59,7 @@ public class UserChatControllerImpl implements UserChatController {
 	private boolean masterAdded = false;
 	private boolean slaveAdded = false;
 	private String alias = randomIdentifier();
+	
 	
 	public ArrayList<User> onlineUsers =  new ArrayList<User>();
 
@@ -616,7 +618,11 @@ public class UserChatControllerImpl implements UserChatController {
 	private boolean fromlogin(String output, Type type){
 		return new Gson().fromJson(output, type);
 	}
-
+	
+	@Override
+	@GET
+	@Path("/on")
+	@Produces(MediaType.APPLICATION_JSON)
 	public ArrayList<User> getOnlineUsers() {
 		return onlineUsers;
 	}
