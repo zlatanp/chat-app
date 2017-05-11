@@ -28,20 +28,9 @@ public class WSEndpoint {
 
 	@OnMessage
 	public String onMessage(Session session, String message) {
-		if (message != null) {
-
-			//Slanje poruka svima osim sebi
-			for (Session s : peers) {
-				RemoteEndpoint.Basic other = s.getBasicRemote();
-				try {
-					other.sendText(message);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		
-		}
-
+		publish(message);
+		
 		return "";
 	}
 
@@ -57,5 +46,21 @@ public class WSEndpoint {
 		System.out.println("CLOSE");
 		LOG.info("Connection closed ...");
 		peers.remove(peer);
+	}
+	
+	public void publish(String message){
+		if (message != null) {
+
+			//Slanje poruka svima osim sebi
+			for (Session s : peers) {
+				RemoteEndpoint.Basic other = s.getBasicRemote();
+				try {
+					other.sendText(message);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		
+		}
 	}
 }
